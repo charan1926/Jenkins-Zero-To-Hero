@@ -51,22 +51,26 @@ pipeline {
     }
 
     stage('Update Deployment File') {
-      environment {
-        GIT_REPO_NAME = "Jenkins-Zero-To-Hero"
-        GIT_USER_NAME = "charan1926"
-      }
-      steps {
-          withCredentials([usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-              sh 'git config --global user.email "charannaidus1926@gmail.com"'
-              sh 'git config --global user.name "charan1926"'
-              sh 'git clean -fdx'
-              sh 'git checkout main'
-              sh 'git pull origin main'
-              sh 'git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/charan1926/Jenkins-Zero-To-Hero.git'
-              sh 'git push origin main'
-          }
-        }
-      }
+  environment {
+    GIT_REPO_NAME = "Jenkins-Zero-To-Hero"
+    GIT_USER_NAME = "charan1926"
+  }
+  steps {
+    withCredentials([usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+      sh '''
+        git config --global user.email "charannaidus1926@gmail.com"
+        git config --global user.name "charan1926"
+        git checkout main
+        git pull origin main
+        cd java-maven-sonar-argocd-helm-k8s/k8s/
+        sed -i "s|image:.*|image: ${DOCKER_IMAGE}|" deployment.yaml
+        git add deployment.yaml
+        git commit -m "Updated deployment image to ${DOCKER_IMAGE}" || echo "No changes to commit"
+        git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git
+        git push origin main
+      '''
     }
   }
+}
+
 }
