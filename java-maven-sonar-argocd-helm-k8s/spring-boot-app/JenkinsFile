@@ -54,15 +54,12 @@ pipeline {
         GIT_USER_NAME = "charan1926"
       }
       steps {
-      withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
-            sh '''
-                git config user.email "charannaidus1926@gmail.com"
-                git config user.name "charan1926"
-                sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
-                git add java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
-                git commit -m "Update deployment image to version ${BUILD_NUMBER}"
-                git push https://charan1926:${GITHUB_TOKEN}@github.com/charan1926/Jenkins-Zero-To-Hero HEAD:main
-            '''
+        withCredentials([usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+          sh 'git config user.email "charannaidus1926@gmail.com"'
+          sh 'git config user.name "charan1926"'
+          sh 'git add .'
+          sh 'git commit -m "Automated commit" || echo "No changes to commit"'
+          sh 'git push https://$GIT_USER:$GIT_TOKEN@github.com/charan1926/Jenkins-Zero-To-Hero HEAD:main'
         }
       }
     }
