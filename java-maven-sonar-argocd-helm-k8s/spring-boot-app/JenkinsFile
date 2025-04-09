@@ -5,10 +5,12 @@ pipeline {
       args '--privileged -u root -v /var/run/docker.sock:/var/run/docker.sock'
     }
   }
+
   environment {
     SONAR_URL = "http://192.168.56.20:9000"
     DOCKER_IMAGE = "charan190501/ultimate-cicd:${BUILD_NUMBER}"
   }
+
   stages {
     stage('Checkout') {
       steps {
@@ -57,13 +59,17 @@ pipeline {
         withCredentials([usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
           sh 'git config user.email "charannaidus1926@gmail.com"'
           sh 'git config user.name "charan1926"'
-            ssh '''
-              git checkout main || git checkout -b main
-              git pull origin main
-              git add .
-              git commit -m "Automated commit from Jenkins" || echo "No changes to commit"
-              git push https://$GIT_USER:$GIT_TOKEN@github.com/charan1926/Jenkins-Zero-To-Hero main
-            '''
+          sh '''
+            git checkout main || git checkout -b main
+            git pull origin main
+
+            # Optional: Replace tag in deployment file (if needed)
+            sed -i "s|replaceImageTag|${BUILD_NUMBER}|g" java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
+
+            git add .
+            git commit -m "Automated commit from Jenkins" || echo "No changes to commit"
+            git push https://$GIT_USER:$GIT_TOKEN@github.com/charan1926/Jenkins-Zero-To-Hero main
+          '''
         }
       }
     }
