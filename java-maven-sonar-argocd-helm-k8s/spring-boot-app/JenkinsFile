@@ -57,9 +57,13 @@ pipeline {
         withCredentials([usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
           sh 'git config user.email "charannaidus1926@gmail.com"'
           sh 'git config user.name "charan1926"'
-          sh 'git add .'
-          sh 'git commit -m "Automated commit" || echo "No changes to commit"'
-          sh 'git push https://$GIT_USER:$GIT_TOKEN@github.com/charan1926/Jenkins-Zero-To-Hero HEAD:main'
+            ssh '''
+              git checkout main || git checkout -b main
+              git pull origin main
+              git add .
+              git commit -m "Automated commit from Jenkins" || echo "No changes to commit"
+              git push https://$GIT_USER:$GIT_TOKEN@github.com/charan1926/Jenkins-Zero-To-Hero main
+            '''
         }
       }
     }
